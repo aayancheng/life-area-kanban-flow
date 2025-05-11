@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, Column, ColumnType } from '@/types/kanban';
@@ -45,13 +46,20 @@ const initialColumns: Column[] = [
     ]
   },
   {
-    id: 'parking',
-    title: 'Parking Lot',
-    icon: '',
-    themeColor: 'gray',
+    id: 'future',
+    title: 'Future To-Do',
+    icon: 'calendar-check',
+    themeColor: 'purple',
     cards: [
-      { id: uuidv4(), title: 'Read a book', description: '', column: 'parking' },
+      { id: uuidv4(), title: 'Read a book', description: '', column: 'future' },
     ]
+  },
+  {
+    id: 'completed',
+    title: 'Completed',
+    icon: 'check',
+    themeColor: 'emerald',
+    cards: []
   }
 ];
 

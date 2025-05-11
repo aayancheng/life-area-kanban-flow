@@ -1,5 +1,5 @@
 
-export type ColumnType = 'health' | 'family' | 'create' | 'parking';
+export type ColumnType = 'health' | 'family' | 'create' | 'future' | 'completed';
 
 export interface Card {
   id: string;

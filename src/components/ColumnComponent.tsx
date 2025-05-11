@@ -3,17 +3,16 @@ import React, { useState } from 'react';
 import { Column, Card as CardType } from '@/types/kanban';
 import CardItem from './CardItem';
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
-import { Heart, Lightbulb } from 'lucide-react';
+import { Plus, X, Heart, Lightbulb, CalendarCheck, Check } from 'lucide-react';
 import { useKanban } from '@/context/KanbanContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
 interface ColumnComponentProps {
   column: Column;
-  onDragStart: (e: React.DragEvent, cardId: string, sourceColumn: string) => void;
+  onDragStart: (e: React.DragEvent, cardId: string, sourceColumn: string, index: number) => void;
   onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, targetColumn: string) => void;
+  onDrop: (e: React.DragEvent, targetColumn: string, targetIndex?: number) => void;
 }
 
 const ColumnComponent: React.FC<ColumnComponentProps> = ({ 
@@ -25,6 +24,7 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
   const { addCard } = useKanban();
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const getIcon = () => {
     switch(column.id) {
@@ -34,6 +34,10 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
         return <Heart className="h-5 w-5 text-blue-600" />;
       case 'create':
         return <Lightbulb className="h-5 w-5 text-orange-500" />;
+      case 'future':
+        return <CalendarCheck className="h-5 w-5 text-purple-600" />;
+      case 'completed':
+        return <Check className="h-5 w-5 text-emerald-600" />;
       default:
         return null;
     }
@@ -47,6 +51,10 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
         return 'text-blue-600';
       case 'create':
         return 'text-orange-500';
+      case 'future':
+        return 'text-purple-600';
+      case 'completed':
+        return 'text-emerald-600';
       default:
         return 'text-gray-800';
     }
@@ -60,18 +68,25 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
     }
   };
 
+  const handleDragEnter = (index: number) => {
+    setDragOverIndex(index);
+  };
+
   return (
     <div 
       className="flex flex-col min-w-[300px] bg-white rounded-lg border shadow-sm"
       onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, column.id)}
+      onDrop={(e) => {
+        onDrop(e, column.id, dragOverIndex !== null ? dragOverIndex : undefined);
+        setDragOverIndex(null);
+      }}
     >
       <div className="p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           {getIcon()}
           <h3 className={`font-medium text-lg ${getHeaderColor()}`}>{column.title}</h3>
         </div>
-        {column.id !== 'parking' && (
+        {!['future', 'completed'].includes(column.id) && (
           <Button 
             variant="ghost" 
             size="icon" 
@@ -84,23 +99,25 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
       </div>
       
       <div className="p-2 flex-grow overflow-y-auto max-h-[500px]">
-        {column.cards.map((card) => (
+        {column.cards.map((card, index) => (
           <div 
             key={card.id} 
             draggable 
-            onDragStart={(e) => onDragStart(e, card.id, column.id)}
+            onDragStart={(e) => onDragStart(e, card.id, column.id, index)}
+            onDragEnter={() => handleDragEnter(index)}
+            className={`${dragOverIndex === index ? 'border-t-2 border-gray-400' : ''}`}
           >
             <CardItem card={card} />
           </div>
         ))}
-        {column.id !== 'parking' && column.cards.length === 0 && (
+        {!['future', 'completed'].includes(column.id) && column.cards.length === 0 && (
           <div className="text-center p-4 text-gray-500 text-sm">
             No goals yet. Click + to add one.
           </div>
         )}
       </div>
       
-      {column.id !== 'parking' && (
+      {!['future', 'completed'].includes(column.id) && (
         <div className="p-2 border-t">
           <Button 
             variant="outline" 

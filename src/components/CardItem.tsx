@@ -39,6 +39,10 @@ const CardItem: React.FC<CardItemProps> = ({ card, isDragging }) => {
         return 'border-l-blue-500';
       case 'create':
         return 'border-l-orange-500';
+      case 'future':
+        return 'border-l-purple-500';
+      case 'completed':
+        return 'border-l-emerald-500';
       default:
         return 'border-l-gray-400';
     }
