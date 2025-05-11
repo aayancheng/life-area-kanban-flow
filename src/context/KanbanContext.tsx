@@ -1,8 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, Column, ColumnType } from '@/types/kanban';
-import { Lotus, Heart, Lightbulb } from 'lucide-react';
 
 interface KanbanContextType {
   columns: Column[];

@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { Column, Card as CardType } from '@/types/kanban';
 import CardItem from './CardItem';
 import { Button } from '@/components/ui/button';
-import { Plus, Lotus, Heart, Lightbulb } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
+import { Heart, Lightbulb } from 'lucide-react';
 import { useKanban } from '@/context/KanbanContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
 
 interface ColumnComponentProps {
   column: Column;
@@ -29,7 +29,7 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
   const getIcon = () => {
     switch(column.id) {
       case 'health':
-        return <Lotus className="h-5 w-5 text-green-600" />;
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-green-600"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"></path><path d="M12 6a6 6 0 0 0-6 6c0 4 6 6 6 6s6-2 6-6a6 6 0 0 0-6-6z"></path></svg>;
       case 'family':
         return <Heart className="h-5 w-5 text-blue-600" />;
       case 'create':
