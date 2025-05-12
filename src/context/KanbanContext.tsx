@@ -46,20 +46,14 @@ const initialColumns: Column[] = [
     ]
   },
   {
-    id: 'future',
-    title: 'Future To-Do',
-    icon: 'calendar-check',
-    themeColor: 'purple',
+    id: 'parking',
+    title: 'Parking Lot',
+    icon: 'circle-parking',
+    themeColor: 'slate',
     cards: [
-      { id: uuidv4(), title: 'Read a book', description: '', column: 'future' },
+      { id: uuidv4(), title: 'Read a book', description: '', column: 'parking', isFuture: true },
+      { id: uuidv4(), title: 'Complete project proposal', description: '', column: 'parking', isCompleted: true },
     ]
-  },
-  {
-    id: 'completed',
-    title: 'Completed',
-    icon: 'check',
-    themeColor: 'emerald',
-    cards: []
   }
 ];
 
@@ -68,7 +62,49 @@ const KanbanContext = createContext<KanbanContextType | undefined>(undefined);
 export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [columns, setColumns] = useState<Column[]>(() => {
     const savedColumns = localStorage.getItem('kanbanColumns');
-    return savedColumns ? JSON.parse(savedColumns) : initialColumns;
+    if (savedColumns) {
+      // Handle migration from old to new format (future, completed -> parking)
+      let parsedColumns = JSON.parse(savedColumns);
+      
+      const hasFutureOrCompleted = parsedColumns.some(
+        (col: Column) => col.id === 'future' || col.id === 'completed'
+      );
+      
+      if (hasFutureOrCompleted) {
+        const futureColumn = parsedColumns.find((col: Column) => col.id === 'future');
+        const completedColumn = parsedColumns.find((col: Column) => col.id === 'completed');
+        
+        // Add isFuture/isCompleted flags to the cards
+        const futureCards = (futureColumn?.cards || []).map((card: Card) => ({
+          ...card,
+          column: 'parking',
+          isFuture: true
+        }));
+        
+        const completedCards = (completedColumn?.cards || []).map((card: Card) => ({
+          ...card,
+          column: 'parking',
+          isCompleted: true
+        }));
+        
+        // Create the new parking column
+        const parkingColumn = {
+          id: 'parking',
+          title: 'Parking Lot',
+          icon: 'circle-parking',
+          themeColor: 'slate',
+          cards: [...futureCards, ...completedCards]
+        };
+        
+        // Filter out the old columns and add the new one
+        parsedColumns = parsedColumns
+          .filter((col: Column) => col.id !== 'future' && col.id !== 'completed')
+          .concat(parkingColumn);
+      }
+      
+      return parsedColumns;
+    }
+    return initialColumns;
   });
 
   useEffect(() => {
@@ -125,7 +161,28 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     
     if (!card) return;
     
-    const updatedCard = { ...card, column: destinationColumn };
+    // Add special properties based on destination
+    let updatedCard = { ...card, column: destinationColumn };
+    
+    if (destinationColumn === 'parking') {
+      // Reset both flags first
+      updatedCard.isFuture = false;
+      updatedCard.isCompleted = false;
+      
+      // Set appropriate flag based on source column
+      if (sourceColumn === 'parking') {
+        // Toggle between future and completed inside parking lot
+        updatedCard.isFuture = card.isCompleted ? true : false;
+        updatedCard.isCompleted = card.isFuture ? true : false;
+      } else {
+        // By default, new items to parking lot are considered future items
+        updatedCard.isFuture = true;
+      }
+    } else if (sourceColumn === 'parking') {
+      // Moving out from parking lot, remove flags
+      delete updatedCard.isFuture;
+      delete updatedCard.isCompleted;
+    }
     
     setColumns(prevColumns =>
       prevColumns.map(col => {

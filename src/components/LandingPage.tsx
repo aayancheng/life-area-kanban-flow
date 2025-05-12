@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import AuthForm from "./AuthForm";
@@ -68,8 +67,8 @@ const LandingPage: React.FC = () => {
             {/* Hero Content */}
             <div className="lg:w-1/2">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Organize Your Life with{" "}
-                <span className="text-blue-600">Visual Flow</span>
+                Prioritize Your Life with{" "}
+                <span className="text-blue-600">Life Kanban</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 max-w-lg">
                 Life Kanban helps you bring balance to all areas of your life by

@@ -4,6 +4,7 @@ import ColumnComponent from './ColumnComponent';
 import { useKanban } from '@/context/KanbanContext';
 import { Card } from '@/types/kanban';
 import { toast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 interface DragItem {
   cardId: string;
@@ -53,21 +54,19 @@ const KanbanBoard: React.FC = () => {
       
       toast({
         title: "Goal Moved",
-        description: `Goal moved to ${targetColumn === 'future' ? 'Future To-Do' : 
-          targetColumn === 'completed' ? 'Completed' : targetColumn}`,
+        description: `Goal moved to ${targetColumn === 'parking' ? 'Parking Lot' : targetColumn}`
       });
     }
     
     setDraggedItem(null);
   };
 
-  const mainColumns = columns.filter(col => !['future', 'completed'].includes(col.id));
-  const futureColumn = columns.find(col => col.id === 'future');
-  const completedColumn = columns.find(col => col.id === 'completed');
+  const mainColumns = columns.filter(col => col.id !== 'parking');
+  const parkingColumn = columns.find(col => col.id === 'parking');
 
   return (
     <div className="flex flex-col space-y-8">
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {mainColumns.map(column => (
           <ColumnComponent
             key={column.id}
@@ -79,31 +78,20 @@ const KanbanBoard: React.FC = () => {
         ))}
       </div>
       
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 max-w-full">
-        {futureColumn && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-purple-600">Future To-Do</h2>
-            <ColumnComponent
-              column={futureColumn}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            />
-          </div>
-        )}
-        
-        {completedColumn && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-emerald-600">Completed</h2>
-            <ColumnComponent
-              column={completedColumn}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            />
-          </div>
-        )}
-      </div>
+      <Separator className="my-8 h-1 bg-gray-200 rounded" />
+      
+      {parkingColumn && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-slate-600">Parking Lot</h2>
+          <ColumnComponent
+            column={parkingColumn}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            isParkingLot={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

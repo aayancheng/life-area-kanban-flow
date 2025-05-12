@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Column, Card as CardType } from '@/types/kanban';
 import CardItem from './CardItem';
 import { Button } from '@/components/ui/button';
-import { Plus, X, Heart, Lightbulb, CalendarCheck, Check } from 'lucide-react';
+import { Plus, X, Heart, Lightbulb, CircleParking } from 'lucide-react';
 import { useKanban } from '@/context/KanbanContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -13,13 +13,15 @@ interface ColumnComponentProps {
   onDragStart: (e: React.DragEvent, cardId: string, sourceColumn: string, index: number) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, targetColumn: string, targetIndex?: number) => void;
+  isParkingLot?: boolean;
 }
 
 const ColumnComponent: React.FC<ColumnComponentProps> = ({ 
   column, 
   onDragStart, 
   onDragOver, 
-  onDrop 
+  onDrop,
+  isParkingLot = false
 }) => {
   const { addCard } = useKanban();
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -34,10 +36,8 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
         return <Heart className="h-5 w-5 text-blue-600" />;
       case 'create':
         return <Lightbulb className="h-5 w-5 text-orange-500" />;
-      case 'future':
-        return <CalendarCheck className="h-5 w-5 text-purple-600" />;
-      case 'completed':
-        return <Check className="h-5 w-5 text-emerald-600" />;
+      case 'parking':
+        return <CircleParking className="h-5 w-5 text-slate-600" />;
       default:
         return null;
     }
@@ -51,10 +51,8 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
         return 'text-blue-600';
       case 'create':
         return 'text-orange-500';
-      case 'future':
-        return 'text-purple-600';
-      case 'completed':
-        return 'text-emerald-600';
+      case 'parking':
+        return 'text-slate-600';
       default:
         return 'text-gray-800';
     }
@@ -74,7 +72,7 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
 
   return (
     <div 
-      className="flex flex-col min-w-[300px] bg-white rounded-lg border shadow-sm"
+      className={`flex flex-col bg-white rounded-lg border shadow-sm ${isParkingLot ? 'md:max-w-[calc(100%/3)]' : ''}`}
       onDragOver={onDragOver}
       onDrop={(e) => {
         onDrop(e, column.id, dragOverIndex !== null ? dragOverIndex : undefined);
@@ -86,7 +84,7 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
           {getIcon()}
           <h3 className={`font-medium text-lg ${getHeaderColor()}`}>{column.title}</h3>
         </div>
-        {!['future', 'completed'].includes(column.id) && (
+        {column.id !== 'parking' && (
           <Button 
             variant="ghost" 
             size="icon" 
@@ -110,14 +108,19 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
             <CardItem card={card} />
           </div>
         ))}
-        {!['future', 'completed'].includes(column.id) && column.cards.length === 0 && (
+        {column.id !== 'parking' && column.cards.length === 0 && (
           <div className="text-center p-4 text-gray-500 text-sm">
             No goals yet. Click + to add one.
           </div>
         )}
+        {column.id === 'parking' && column.cards.length === 0 && (
+          <div className="text-center p-4 text-gray-500 text-sm">
+            Drag items here to park them for later or mark as completed.
+          </div>
+        )}
       </div>
       
-      {!['future', 'completed'].includes(column.id) && (
+      {column.id !== 'parking' && (
         <div className="p-2 border-t">
           <Button 
             variant="outline" 

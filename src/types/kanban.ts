@@ -1,5 +1,5 @@
 
-export type ColumnType = 'health' | 'family' | 'create' | 'future' | 'completed';
+export type ColumnType = 'health' | 'family' | 'create' | 'parking';
 
 export interface Card {
   id: string;
@@ -7,6 +7,8 @@ export interface Card {
   description: string;
   youtubeLink?: string;
   column: ColumnType;
+  isFuture?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface Column {
