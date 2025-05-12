@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Card, Column, ColumnType } from '@/types/kanban';
+import { Card, Column, ColumnType, LegacyColumnType } from '@/types/kanban';
 
 interface KanbanContextType {
   columns: Column[];
@@ -66,30 +65,38 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Handle migration from old to new format (future, completed -> parking)
       let parsedColumns = JSON.parse(savedColumns);
       
+      interface OldColumn {
+        id: LegacyColumnType;
+        title: string;
+        icon: string;
+        themeColor: string;
+        cards: Card[];
+      }
+      
       const hasFutureOrCompleted = parsedColumns.some(
-        (col: Column) => col.id === 'future' || col.id === 'completed'
+        (col: OldColumn) => col.id === 'future' || col.id === 'completed'
       );
       
       if (hasFutureOrCompleted) {
-        const futureColumn = parsedColumns.find((col: Column) => col.id === 'future');
-        const completedColumn = parsedColumns.find((col: Column) => col.id === 'completed');
+        const futureColumn = parsedColumns.find((col: OldColumn) => col.id === 'future');
+        const completedColumn = parsedColumns.find((col: OldColumn) => col.id === 'completed');
         
         // Add isFuture/isCompleted flags to the cards
         const futureCards = (futureColumn?.cards || []).map((card: Card) => ({
           ...card,
-          column: 'parking',
+          column: 'parking' as ColumnType,
           isFuture: true
         }));
         
         const completedCards = (completedColumn?.cards || []).map((card: Card) => ({
           ...card,
-          column: 'parking',
+          column: 'parking' as ColumnType,
           isCompleted: true
         }));
         
         // Create the new parking column
         const parkingColumn = {
-          id: 'parking',
+          id: 'parking' as ColumnType,
           title: 'Parking Lot',
           icon: 'circle-parking',
           themeColor: 'slate',
@@ -98,7 +105,7 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         
         // Filter out the old columns and add the new one
         parsedColumns = parsedColumns
-          .filter((col: Column) => col.id !== 'future' && col.id !== 'completed')
+          .filter((col: OldColumn) => col.id !== 'future' && col.id !== 'completed')
           .concat(parkingColumn);
       }
       

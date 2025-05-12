@@ -1,6 +1,9 @@
 
 export type ColumnType = 'health' | 'family' | 'create' | 'parking';
 
+// Legacy column types that might exist in stored data
+export type LegacyColumnType = ColumnType | 'future' | 'completed';
+
 export interface Card {
   id: string;
   title: string;
