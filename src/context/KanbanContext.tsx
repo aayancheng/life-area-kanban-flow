@@ -113,6 +113,10 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       )
     );
   };
+  
+  const importBoard = (importedColumns: Column[]) => {
+    setColumns(importedColumns);
+  };
 
   return (
     <KanbanContext.Provider 
@@ -124,7 +128,8 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         getCard, 
         updateCard,
         deleteCard,
-        loading
+        loading,
+        importBoard
       }}
     >
       {children}

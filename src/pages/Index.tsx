@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useKanban } from '@/context/KanbanContext';
+import ExportImportButtons from '@/components/ExportImportButtons';
 
 // Loading component to show when data is being fetched
 const LoadingBoard = () => (
@@ -52,6 +53,9 @@ const Index = () => {
       
       <div className="container mx-auto px-4 py-8">
         <KanbanProvider>
+          <div className="mb-6 flex justify-end">
+            <ExportImportButtons />
+          </div>
           <BoardContainer />
         </KanbanProvider>
       </div>

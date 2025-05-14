@@ -31,4 +31,5 @@ export interface KanbanContextType {
   updateCard: (cardId: string, updatedCard: Partial<Card>) => void;
   deleteCard: (cardId: string) => void;
   loading: boolean;
+  importBoard: (importedColumns: Column[]) => void;
 }
