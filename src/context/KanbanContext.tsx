@@ -5,6 +5,7 @@ import { Card, Column, ColumnType, LegacyColumnType } from '@/types/kanban';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 interface KanbanContextType {
   columns: Column[];
@@ -91,8 +92,8 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         if (data) {
-          // If board exists, use it
-          setColumns(data.columns as Column[]);
+          // If board exists, use it - properly cast the JSON data to our Column[] type
+          setColumns(data.columns as unknown as Column[]);
         } else {
           // If no board exists for the user, create a new one with default data
           await saveDefaultBoard(user.id);
@@ -125,7 +126,7 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       await supabase.from('kanban_boards').insert({
         user_id: userId,
-        columns: initialColumns
+        columns: initialColumns as unknown as Json
       });
     } catch (error) {
       console.error('Error creating default board:', error);
@@ -142,7 +143,7 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .from('kanban_boards')
           .upsert({
             user_id: user.id,
-            columns: columns,
+            columns: columns as unknown as Json,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id'
