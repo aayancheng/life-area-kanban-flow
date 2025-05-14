@@ -1,6 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, Column, ColumnType, LegacyColumnType } from '@/types/kanban';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface KanbanContextType {
   columns: Column[];
@@ -10,6 +14,7 @@ interface KanbanContextType {
   getCard: (cardId: string) => Card | undefined;
   updateCard: (cardId: string, updatedCard: Partial<Card>) => void;
   deleteCard: (cardId: string) => void;
+  loading: boolean;
 }
 
 const initialColumns: Column[] = [
@@ -59,64 +64,164 @@ const initialColumns: Column[] = [
 const KanbanContext = createContext<KanbanContextType | undefined>(undefined);
 
 export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [columns, setColumns] = useState<Column[]>(() => {
-    const savedColumns = localStorage.getItem('kanbanColumns');
-    if (savedColumns) {
-      // Handle migration from old to new format (future, completed -> parking)
-      let parsedColumns = JSON.parse(savedColumns);
-      
-      interface OldColumn {
-        id: LegacyColumnType;
-        title: string;
-        icon: string;
-        themeColor: string;
-        cards: Card[];
-      }
-      
-      const hasFutureOrCompleted = parsedColumns.some(
-        (col: OldColumn) => col.id === 'future' || col.id === 'completed'
-      );
-      
-      if (hasFutureOrCompleted) {
-        const futureColumn = parsedColumns.find((col: OldColumn) => col.id === 'future');
-        const completedColumn = parsedColumns.find((col: OldColumn) => col.id === 'completed');
-        
-        // Add isFuture/isCompleted flags to the cards
-        const futureCards = (futureColumn?.cards || []).map((card: Card) => ({
-          ...card,
-          column: 'parking' as ColumnType,
-          isFuture: true
-        }));
-        
-        const completedCards = (completedColumn?.cards || []).map((card: Card) => ({
-          ...card,
-          column: 'parking' as ColumnType,
-          isCompleted: true
-        }));
-        
-        // Create the new parking column
-        const parkingColumn = {
-          id: 'parking' as ColumnType,
-          title: 'Parking Lot',
-          icon: 'circle-parking',
-          themeColor: 'slate',
-          cards: [...futureCards, ...completedCards]
-        };
-        
-        // Filter out the old columns and add the new one
-        parsedColumns = parsedColumns
-          .filter((col: OldColumn) => col.id !== 'future' && col.id !== 'completed')
-          .concat(parkingColumn);
-      }
-      
-      return parsedColumns;
-    }
-    return initialColumns;
-  });
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useAuth();
 
+  // Load data from Supabase when user changes
   useEffect(() => {
-    localStorage.setItem('kanbanColumns', JSON.stringify(columns));
-  }, [columns]);
+    const loadData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      
+      try {
+        // Attempt to fetch the user's board from the database
+        const { data, error } = await supabase
+          .from('kanban_boards')
+          .select('columns')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          // If board exists, use it
+          setColumns(data.columns as Column[]);
+        } else {
+          // If no board exists for the user, create a new one with default data
+          await saveDefaultBoard(user.id);
+          setColumns(initialColumns);
+        }
+      } catch (error) {
+        console.error('Error loading kanban board:', error);
+        // Fallback to localStorage if database fetch fails
+        const savedColumns = localStorage.getItem('kanbanColumns');
+        if (savedColumns) {
+          handleLocalStorageData(savedColumns);
+        } else {
+          setColumns(initialColumns);
+        }
+        toast({
+          title: "Failed to load your board from the cloud",
+          description: "Using local data instead. Your changes may not be saved to the cloud.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [user]);
+
+  // Create a default board for new users
+  const saveDefaultBoard = async (userId: string) => {
+    try {
+      await supabase.from('kanban_boards').insert({
+        user_id: userId,
+        columns: initialColumns
+      });
+    } catch (error) {
+      console.error('Error creating default board:', error);
+    }
+  };
+
+  // Save to database whenever columns change
+  useEffect(() => {
+    const saveToDatabase = async () => {
+      if (!user || !columns.length || loading) return;
+
+      try {
+        const { error } = await supabase
+          .from('kanban_boards')
+          .upsert({
+            user_id: user.id,
+            columns: columns,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) {
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error saving kanban board:', error);
+        // Fallback to localStorage
+        localStorage.setItem('kanbanColumns', JSON.stringify(columns));
+        toast({
+          title: "Failed to save to the cloud",
+          description: "Your board was saved locally, but not to the cloud.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    // Wait a bit before saving to reduce database calls during rapid changes
+    const timeoutId = setTimeout(() => {
+      saveToDatabase();
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [columns, user, loading]);
+
+  // Handle data from localStorage for backward compatibility
+  const handleLocalStorageData = (savedColumns: string) => {
+    // Handle migration from old to new format (future, completed -> parking)
+    let parsedColumns = JSON.parse(savedColumns);
+    
+    interface OldColumn {
+      id: LegacyColumnType;
+      title: string;
+      icon: string;
+      themeColor: string;
+      cards: Card[];
+    }
+    
+    const hasFutureOrCompleted = parsedColumns.some(
+      (col: OldColumn) => col.id === 'future' || col.id === 'completed'
+    );
+    
+    if (hasFutureOrCompleted) {
+      const futureColumn = parsedColumns.find((col: OldColumn) => col.id === 'future');
+      const completedColumn = parsedColumns.find((col: OldColumn) => col.id === 'completed');
+      
+      // Add isFuture/isCompleted flags to the cards
+      const futureCards = (futureColumn?.cards || []).map((card: Card) => ({
+        ...card,
+        column: 'parking' as ColumnType,
+        isFuture: true
+      }));
+      
+      const completedCards = (completedColumn?.cards || []).map((card: Card) => ({
+        ...card,
+        column: 'parking' as ColumnType,
+        isCompleted: true
+      }));
+      
+      // Create the new parking column
+      const parkingColumn = {
+        id: 'parking' as ColumnType,
+        title: 'Parking Lot',
+        icon: 'circle-parking',
+        themeColor: 'slate',
+        cards: [...futureCards, ...completedCards]
+      };
+      
+      // Filter out the old columns and add the new one
+      parsedColumns = parsedColumns
+        .filter((col: OldColumn) => col.id !== 'future' && col.id !== 'completed')
+        .concat(parkingColumn);
+    }
+    
+    setColumns(parsedColumns);
+  };
 
   const addCard = (column: ColumnType, title: string) => {
     const newCard: Card = {
@@ -221,7 +326,8 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updateCardOrder, 
         getCard, 
         updateCard,
-        deleteCard
+        deleteCard,
+        loading
       }}
     >
       {children}
