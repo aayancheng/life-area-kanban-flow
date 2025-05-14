@@ -21,3 +21,14 @@ export interface Column {
   themeColor: string;
   cards: Card[];
 }
+
+export interface KanbanContextType {
+  columns: Column[];
+  addCard: (column: ColumnType, title: string) => void;
+  moveCard: (cardId: string, sourceColumn: ColumnType, destinationColumn: ColumnType) => void;
+  updateCardOrder: (columnId: ColumnType, reorderedCards: Card[]) => void;
+  getCard: (cardId: string) => Card | undefined;
+  updateCard: (cardId: string, updatedCard: Partial<Card>) => void;
+  deleteCard: (cardId: string) => void;
+  loading: boolean;
+}
