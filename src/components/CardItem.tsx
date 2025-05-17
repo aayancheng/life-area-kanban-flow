@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/types/kanban';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useKanban } from '@/context/KanbanContext';
+import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface CardItemProps {
   card: Card;
@@ -15,12 +19,14 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedCard, setEditedCard] = useState({ ...card });
   const { updateCard, deleteCard } = useKanban();
+  const [showProgressPopover, setShowProgressPopover] = useState(false);
 
   const handleSave = () => {
     updateCard(card.id, {
       title: editedCard.title,
       description: editedCard.description,
       youtubeLink: editedCard.youtubeLink,
+      progress: editedCard.progress
     });
     setIsEditing(false);
   };
@@ -32,6 +38,23 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
       return <Timer className="h-4 w-4 text-purple-500" />;
     }
     return null;
+  };
+
+  const getProgressColor = () => {
+    const progress = card.progress || 0;
+    if (progress < 40) return "bg-red-500";
+    if (progress < 80) return "bg-yellow-500";
+    return "bg-emerald-500";
+  };
+
+  const handleProgressUpdate = (values: number[]) => {
+    const progress = values[0];
+    setEditedCard({...editedCard, progress});
+    
+    // Immediately update the card in the context to show changes in real-time
+    if (!isEditing) {
+      updateCard(card.id, { progress });
+    }
   };
 
   return (
@@ -48,6 +71,47 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
             </div>
             {card.description && (
               <p className="text-sm text-gray-600 line-clamp-2">{card.description}</p>
+            )}
+            
+            {/* Progress bar */}
+            {card.column !== 'parking' && (
+              <div className="mt-2">
+                <Popover open={showProgressPopover} onOpenChange={setShowProgressPopover}>
+                  <PopoverTrigger asChild>
+                    <div className="mt-1.5 cursor-pointer" onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProgressPopover(true);
+                    }}>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-gray-500">Progress</span>
+                        <span className="font-medium">{card.progress || 0}%</span>
+                      </div>
+                      <Progress 
+                        value={card.progress || 0} 
+                        className="h-2 bg-gray-100"
+                        indicatorClassName={getProgressColor()}
+                      />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium">Update Progress</h4>
+                      <Slider
+                        defaultValue={[card.progress || 0]}
+                        max={100}
+                        step={10}
+                        onValueChange={handleProgressUpdate}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>0%</span>
+                        <span>50%</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             )}
           </div>
         </div>
@@ -93,6 +157,24 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
                 placeholder="https://www.youtube.com/watch?v=..."
               />
             </div>
+            
+            {editedCard.column !== 'parking' && (
+              <div className="grid gap-2">
+                <label htmlFor="progress" className="text-sm font-medium">Progress: {editedCard.progress || 0}%</label>
+                <Slider 
+                  id="progress"
+                  defaultValue={[editedCard.progress || 0]} 
+                  max={100}
+                  step={10}
+                  onValueChange={(values) => setEditedCard({...editedCard, progress: values[0]})}
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            )}
           </div>
           
           <DialogFooter className="flex justify-between items-center">

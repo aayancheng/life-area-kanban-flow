@@ -12,6 +12,7 @@ export interface Card {
   column: ColumnType;
   isFuture?: boolean;
   isCompleted?: boolean;
+  progress?: number; // Added progress property (0-100)
 }
 
 export interface Column {
