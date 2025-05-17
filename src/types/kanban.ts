@@ -8,11 +8,11 @@ export interface Card {
   id: string;
   title: string;
   description: string;
-  youtubeLink?: string;
+  youtubeLink?: string;  // URL to a YouTube video related to this goal
   column: ColumnType;
   isFuture?: boolean;
   isCompleted?: boolean;
-  progress?: number; // Added progress property (0-100)
+  progress?: number; // Progress percentage (0-100)
 }
 
 export interface Column {

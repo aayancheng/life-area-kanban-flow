@@ -10,6 +10,7 @@ import { useKanban } from '@/context/KanbanContext';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface CardItemProps {
   card: Card;
@@ -57,6 +58,20 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
     }
   };
 
+  // Function to extract YouTube video ID from various YouTube URL formats
+  const getYoutubeVideoId = (url: string): string | null => {
+    if (!url) return null;
+    
+    // Regular expression to match YouTube video ID from various URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Check if card has YouTube link indicator
+  const hasYoutubeLink = !!card.youtubeLink && getYoutubeVideoId(card.youtubeLink);
+
   return (
     <>
       <div 
@@ -68,6 +83,13 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
             <div className="flex items-center gap-1.5 mb-1">
               {card.column === 'parking' && getParkingStatusIcon()}
               <h4 className="font-medium text-gray-800">{card.title}</h4>
+              
+              {/* YouTube indicator */}
+              {hasYoutubeLink && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="currentColor" strokeWidth="0" className="h-4 w-4 text-red-600">
+                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                </svg>
+              )}
             </div>
             {card.description && (
               <p className="text-sm text-gray-600 line-clamp-2">{card.description}</p>
@@ -118,7 +140,7 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
       </div>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex justify-between items-center">
               Edit Goal
@@ -156,6 +178,27 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
                 onChange={(e) => setEditedCard({...editedCard, youtubeLink: e.target.value})} 
                 placeholder="https://www.youtube.com/watch?v=..."
               />
+              
+              {/* YouTube Embed Preview */}
+              {editedCard.youtubeLink && (
+                <>
+                  {getYoutubeVideoId(editedCard.youtubeLink) ? (
+                    <div className="mt-2 border rounded-md overflow-hidden">
+                      <AspectRatio ratio={16 / 9}>
+                        <iframe 
+                          src={`https://www.youtube.com/embed/${getYoutubeVideoId(editedCard.youtubeLink)}`}
+                          title="YouTube video player"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        ></iframe>
+                      </AspectRatio>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-red-500 mt-1">Invalid YouTube link format</p>
+                  )}
+                </>
+              )}
             </div>
             
             {editedCard.column !== 'parking' && (
