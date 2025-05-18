@@ -1,7 +1,9 @@
+
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import AuthForm from "./AuthForm";
 import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
 
 const LandingPage: React.FC = () => {
   const { user } = useAuth();
@@ -119,11 +121,11 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row items-center gap-12">
-            {/* Kanban Board Image */}
+            {/* Kanban Board Image - UPDATED WITH NEW IMAGE PATH */}
             <div className="lg:w-1/2">
               <div className="rounded-lg overflow-hidden shadow-xl">
                 <img 
-                  src="/lovable-uploads/68446dc7-97fb-4bc0-bc55-1cb55982349e.png" 
+                  src="/lovable-uploads/21bbf714-1417-432c-a013-8e8203a06305.png" 
                   alt="Life Kanban Board Example" 
                   className="w-full h-auto object-cover"
                 />
