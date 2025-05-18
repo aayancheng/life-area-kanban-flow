@@ -108,14 +108,14 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* How It Works Section (NEW) */}
-      <section className="py-16 bg-white">
+      {/* How It Works Section - REDUCED PADDING TOP */}
+      <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               How Life Kanban Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               A simple visual system to help you organize and balance all areas of your life
             </p>
           </div>
@@ -160,7 +160,7 @@ const LandingPage: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Use Life Kanban?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto">
               A holistic approach to organizing your goals across all important areas of your life.
             </p>
           </div>
