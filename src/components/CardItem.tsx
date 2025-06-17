@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/types/kanban';
 import { Button } from '@/components/ui/button';
@@ -142,11 +141,8 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="flex justify-between items-center">
+            <DialogTitle>
               Edit Goal
-              <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
           
