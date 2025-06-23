@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/types/kanban';
 import { Button } from '@/components/ui/button';
@@ -218,18 +217,17 @@ const CardItem: React.FC<CardItemProps> = ({ card }) => {
           </div>
           
           <DialogFooter className="flex justify-between items-center">
-            <Button 
-              variant="destructive" 
-              onClick={() => {
-                deleteCard(card.id);
-                setIsEditing(false);
-              }}
-              className="mr-auto"
-            >
-              Delete
-            </Button>
-            <div>
-              <Button variant="outline" onClick={() => setIsEditing(false)} className="mr-2">
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  deleteCard(card.id);
+                  setIsEditing(false);
+                }}
+              >
+                Delete
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
                 Cancel
               </Button>
               <Button onClick={handleSave}>
