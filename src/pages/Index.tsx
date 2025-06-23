@@ -36,17 +36,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Personal Kanban Board</h1>
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="text-sm text-gray-600">
-                Logged in as: {user.email}
-              </div>
-            )}
-            <Button variant="outline" onClick={signOut}>
-              Sign Out
-            </Button>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h1 className="text-2xl font-bold">Personal Kanban Board</h1>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              {user && (
+                <div className="text-sm text-gray-600">
+                  Logged in as: {user.email}
+                </div>
+              )}
+              <Button variant="outline" onClick={signOut}>
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>

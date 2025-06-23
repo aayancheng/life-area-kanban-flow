@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/types/kanban';
 import { Button } from '@/components/ui/button';
-import { CircleParking, CheckCircle2, Timer, X } from 'lucide-react';
+import { CircleParking, CheckCircle2, Timer } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
