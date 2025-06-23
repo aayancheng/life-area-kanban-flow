@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Column, Card as CardType } from '@/types/kanban';
 import CardItem from './CardItem';
@@ -138,9 +137,6 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
           <DialogHeader>
             <DialogTitle className="flex justify-between items-center">
               Add New Goal
-              <Button variant="ghost" size="icon" onClick={() => setIsAddingCard(false)}>
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
